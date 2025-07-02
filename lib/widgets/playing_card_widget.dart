@@ -55,6 +55,7 @@ class PlayingCardWidget extends StatelessWidget {
         suitSymbol = card.rank == 16 ? 'SJ' : 'BJ';
         break;
     }
+
     final rankText = card.rank <= 10 ? card.rank.toString() : {
       11: 'J',
       12: 'Q',
@@ -65,12 +66,15 @@ class PlayingCardWidget extends StatelessWidget {
       17: 'BJ',
     }[card.rank] ?? '';
 
-    return Text(
-      top ? '$rankText
-$suitSymbol' : '$suitSymbol
-$rankText',
-      textAlign: TextAlign.center,
-      style: TextStyle(fontSize: 14, color: color),
+    final first = top ? rankText : suitSymbol;
+    final second = top ? suitSymbol : rankText;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(first, style: TextStyle(fontSize: 12, color: color)),
+        Text(second, style: TextStyle(fontSize: 12, color: color)),
+      ],
     );
   }
 }
