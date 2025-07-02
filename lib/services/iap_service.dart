@@ -13,14 +13,12 @@ class IAPService {
   late StreamSubscription<List<PurchaseDetails>> _subscription;
 
   Future<void> init() async {
+    if (_subscription != null) return;
     final bool available = await _iap.isAvailable();
     if (!available) {
-      // Store not available.
       return;
     }
-
     await _queryProducts();
-
     _subscription = _iap.purchaseStream.listen((purchases) {
       _listenToPurchases(purchases);
     });
