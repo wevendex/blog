@@ -8,6 +8,7 @@ import '../services/auth_service.dart';
 import '../services/tutorial_service.dart';
 import '../services/ads_service.dart';
 import 'game_screen.dart';
+import 'shop_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   static const String routeName = '/';
@@ -74,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // TODO: Navigate to shop
+                Navigator.pushNamed(context, ShopScreen.routeName);
               },
               child: const Text('商城'),
             ),

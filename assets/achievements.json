@@ -1,0 +1,4 @@
+[
+  {"id":"first_win","title":"首胜","desc":"赢得第一局","chips":100},
+  {"id":"bomb_master","title":"炸弹达人","desc":"打出10次炸弹","chips":300}
+]
