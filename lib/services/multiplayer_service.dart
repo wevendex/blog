@@ -78,4 +78,41 @@ class MultiplayerService extends ChangeNotifier {
           .where('status', isEqualTo: 'waiting')
           .snapshots()
           .map((snap) => snap.docs.map((d) => GameRoom.fromDoc(d)).toList());
+
+  Future<void> quickMatch(String playerId) async {
+    try {
+      // Find first waiting room with less than 3 players
+      final query = await _firestore
+          .collection('rooms')
+          .where('status', isEqualTo: 'waiting')
+          .get();
+      for (var doc in query.docs) {
+        final players = List<String>.from(doc['players'] ?? []);
+        if (players.length < 3 && !players.contains(playerId)) {
+          await joinRoom(doc.id, playerId);
+          return;
+        }
+      }
+      // none found, create new
+      await createRoom(playerId);
+    } catch (e) {
+      ErrorService().showError('匹配失败: $e');
+    }
+  }
+
+  Stream<GameRoom?>? get roomStream => _room == null
+      ? null
+      : _firestore.collection('rooms').doc(_room!.id).snapshots().map((d) => GameRoom.fromDoc(d));
+
+  Future<void> leaveRoom() async {
+    if (_room == null) return;
+    try {
+      await _firestore.collection('rooms').doc(_room!.id).update({
+        'players': FieldValue.arrayRemove(['local']),
+      });
+      await disposeRoom();
+    } catch (e) {
+      ErrorService().showError('退出房间失败');
+    }
+  }
 }

@@ -8,6 +8,7 @@ import 'screens/shop_screen.dart';
 import 'screens/lobby_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/leaderboard_screen.dart';
+import 'screens/room_screen.dart';
 import 'services/game_service.dart';
 import 'services/auth_service.dart';
 import 'services/multiplayer_service.dart';
@@ -65,6 +66,7 @@ class DouDiZhuApp extends StatelessWidget {
           LobbyScreen.routeName: (_) => const LobbyScreen(),
           ProfileScreen.routeName: (_) => const ProfileScreen(),
           LeaderboardScreen.routeName: (_) => const LeaderboardScreen(),
+          RoomScreen.routeName: (_) => const RoomScreen(),
         },
         navigatorKey: navigatorKey,
         scaffoldMessengerKey: ErrorService().messengerKey,

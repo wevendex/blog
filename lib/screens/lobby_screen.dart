@@ -36,10 +36,9 @@ class _LobbyScreenState extends State<LobbyScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          try {
-            await mp.createRoom('local');
-          } catch (e) {
-            ErrorService().showError('快速匹配失败');
+          await mp.quickMatch('local');
+          if (mp.room != null) {
+            Navigator.pushNamed(context, '/room');
           }
         },
         icon: const Icon(Icons.flash_on),
