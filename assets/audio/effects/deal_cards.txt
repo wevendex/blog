@@ -1,0 +1,4 @@
+# 发牌音效文件
+# 建议音效时长: 1-2秒
+# 音效特征: 连续发牌的声音
+PLACEHOLDER_AUDIO_FILE=deal_cards.mp3

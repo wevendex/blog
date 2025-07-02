@@ -1,0 +1,8 @@
+# 背景音乐文件
+# 建议音效时长: 2-5分钟 (循环播放)
+# 音乐特征: 轻松的背景音乐，适合卡牌游戏
+# 推荐网站:
+# - https://freemusicarchive.org/
+# - https://incompetech.com/
+# - https://www.bensound.com/
+PLACEHOLDER_AUDIO_FILE=background.mp3

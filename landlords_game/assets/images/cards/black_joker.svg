@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg width="180" height="250" viewBox="0 0 180 250" xmlns="http://www.w3.org/2000/svg"><defs><style>
+        .card-bg { fill: white; stroke: #333; stroke-width: 2; }
+        .joker-text { font-family: Arial, sans-serif; font-weight: bold; text-anchor: middle; }
+    </style></defs><rect class="card-bg" x="2" y="2" width="176" height="246" rx="20" ry="20" /><text x="90" y="50" class="joker-text" fill="#000000" font-size="24">JOKER</text><text x="90" y="125" class="joker-text" fill="#000000" font-size="40">小王</text><text x="90" y="210" class="joker-text" fill="#000000" font-size="60">🃏</text></svg>

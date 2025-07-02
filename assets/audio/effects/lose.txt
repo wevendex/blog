@@ -1,0 +1,4 @@
+# 失败音效文件
+# 建议音效时长: 1-2秒
+# 音效特征: 失败的声音
+PLACEHOLDER_AUDIO_FILE=lose.mp3

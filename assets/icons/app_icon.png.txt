@@ -1,0 +1,15 @@
+# 应用图标 PNG 文件占位符
+# 
+# 实际开发中应替换为真实的 PNG 图标文件
+# 建议尺寸: 512x512 像素
+# 格式: PNG (透明背景)
+# 
+# 可以使用以下工具转换 SVG 为 PNG:
+# - GIMP
+# - Inkscape  
+# - 在线转换工具: https://convertio.co/svg-png/
+# 
+# 或者使用 ImageMagick 命令:
+# convert assets/icons/app_icon.svg assets/icons/app_icon.png
+#
+PLACEHOLDER_FILE=app_icon.png

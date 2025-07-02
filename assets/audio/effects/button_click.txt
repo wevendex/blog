@@ -1,0 +1,9 @@
+# 按钮点击音效文件
+# 实际开发中应替换为真实的音频文件 (.mp3, .wav, .ogg)
+# 建议音效时长: 0.1-0.3秒
+# 音效特征: 清脆的点击声
+# 可以从以下网站获取免费音效:
+# - https://freesound.org/
+# - https://zapsplat.com/
+# - https://www.soundjay.com/
+PLACEHOLDER_AUDIO_FILE=button_click.mp3

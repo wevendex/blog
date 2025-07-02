@@ -1,0 +1,4 @@
+# 翻牌音效文件
+# 建议音效时长: 0.2-0.5秒
+# 音效特征: 卡片翻转的声音
+PLACEHOLDER_AUDIO_FILE=card_flip.mp3

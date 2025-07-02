@@ -1,0 +1,4 @@
+# 胜利音效文件
+# 建议音效时长: 2-3秒
+# 音效特征: 庆祝胜利的声音
+PLACEHOLDER_AUDIO_FILE=win.mp3
