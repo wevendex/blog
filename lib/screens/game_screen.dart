@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:confetti/confetti.dart';
 
 import '../services/game_service.dart';
 import '../services/analytics_service.dart';
@@ -30,9 +31,12 @@ class _GameScreenState extends State<GameScreen> {
   final GlobalKey _passBtnKey = GlobalKey();
   final GlobalKey _handKey = GlobalKey();
 
+  late ConfettiController _confettiCtrl;
+
   @override
   void initState() {
     super.initState();
+    _confettiCtrl = ConfettiController(duration: const Duration(seconds: 3));
     // Start dealing animation when screen appears
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _audioPlayer.play(BytesSource(ToneGenerator.generateTone(freq: 300, durationSeconds: 0.4)));
@@ -69,10 +73,17 @@ class _GameScreenState extends State<GameScreen> {
     ]);
   }
 
+  void _checkWin(GameService game) {
+    if (game.engine.winner != null) {
+      _confettiCtrl.play();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer2<GameService, MultiplayerService>(
       builder: (context, game, multiplayer, _) {
+        _checkWin(game);
         // Synchronize from multiplayer state if available.
         if (multiplayer.room?.engineState != null) {
           final eng = DouDiZhuEngine.fromMap(multiplayer.room!.engineState!);
@@ -91,15 +102,27 @@ class _GameScreenState extends State<GameScreen> {
           appBar: AppBar(
             title: const Text('斗地主对局'),
           ),
-          body: Column(
+          body: Stack(
             children: [
-              _aiHandView(topAi),
-              const SizedBox(height: 10),
-              Expanded(child: _centerPlayArea(game)),
-              const SizedBox(height: 10),
-              _playerHandView(player),
-              const SizedBox(height: 10),
-              _controlButtons(game, player, multiplayer),
+              Column(
+                children: [
+                  _aiHandView(topAi),
+                  const SizedBox(height: 10),
+                  Expanded(child: _centerPlayArea(game)),
+                  const SizedBox(height: 10),
+                  _playerHandView(player),
+                  const SizedBox(height: 10),
+                  _controlButtons(game, player, multiplayer),
+                ],
+              ),
+              Align(
+                alignment: Alignment.topCenter,
+                child: ConfettiWidget(
+                  confettiController: _confettiCtrl,
+                  blastDirectionality: BlastDirectionality.explosive,
+                  shouldLoop: false,
+                ),
+              ),
             ],
           ),
         );
@@ -201,6 +224,7 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   void dispose() {
+    _confettiCtrl.dispose();
     _audioPlayer.dispose();
     super.dispose();
   }

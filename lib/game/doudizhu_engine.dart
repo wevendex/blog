@@ -14,6 +14,7 @@ class DouDiZhuEngine {
   Player? currentPlayer;
   List<CardModel>? lastPlayed;
   final List<CardModel> playedCards = [];
+  Player? winner;
 
   DouDiZhuEngine() {
     _init();
@@ -76,8 +77,7 @@ class DouDiZhuEngine {
     playedCards.addAll(cards);
 
     if (player.hand.isEmpty) {
-      // Player wins.
-      // TODO: handle win.
+      winner = player;
     } else {
       _advanceTurn();
       if (currentPlayer!.type == PlayerType.ai) {

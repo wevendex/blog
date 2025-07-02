@@ -23,6 +23,9 @@ class GameService extends ChangeNotifier {
   void playCards(Player player, List<CardModel> cards) {
     if (_engine == null) return;
     _engine!.playCards(player, cards);
+    if (_engine!.winner != null) {
+      // Game finished
+    }
     notifyListeners();
   }
 

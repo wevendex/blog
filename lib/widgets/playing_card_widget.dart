@@ -11,25 +11,29 @@ class PlayingCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 2),
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
-        height: 100,
-        width: 70,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: isSelected ? Colors.blue : Colors.black, width: 2),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _rankSuitText(card, top: true),
-            RotatedBox(
-              quarterTurns: 2,
-              child: _rankSuitText(card, top: false),
-            ),
-          ],
+      child: AnimatedScale(
+        scale: isSelected ? 1.1 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
+          height: 100,
+          width: 70,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: isSelected ? Colors.blue : Colors.black, width: 2),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _rankSuitText(card, top: true),
+              RotatedBox(
+                quarterTurns: 2,
+                child: _rankSuitText(card, top: false),
+              ),
+            ],
+          ),
         ),
       ),
     );
