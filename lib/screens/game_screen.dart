@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:confetti/confetti.dart';
+import 'dart:math';
 
 import '../services/game_service.dart';
 import '../services/analytics_service.dart';
@@ -100,10 +101,20 @@ class _GameScreenState extends State<GameScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('斗地主对局'),
+            title: const Text('欢乐斗地主'),
+            centerTitle: true,
           ),
           body: Stack(
             children: [
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF3b8d99), Color(0xFF6b6b83), Color(0xFFaa4b6b)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
               Column(
                 children: [
                   _aiHandView(topAi),
@@ -115,6 +126,7 @@ class _GameScreenState extends State<GameScreen> {
                   _controlButtons(game, player, multiplayer),
                 ],
               ),
+              _turnIndicator(),
               Align(
                 alignment: Alignment.topCenter,
                 child: ConfettiWidget(
@@ -219,6 +231,23 @@ class _GameScreenState extends State<GameScreen> {
           child: const Text('不出'),
         ),
       ],
+    );
+  }
+
+  Widget _turnIndicator() {
+    return Positioned(
+      top: 100,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: AnimatedRotation(
+          turns: _dealt ? 1 : 0,
+          duration: const Duration(seconds: 1),
+          child: Icon(Icons.arrow_drop_down_circle,
+              size: 40,
+              color: Colors.yellowAccent.shade100.withOpacity(0.9)),
+        ),
+      ),
     );
   }
 
