@@ -1,0 +1,37 @@
+import 'package:flutter/foundation.dart';
+
+import '../models/player.dart';
+import '../models/deck.dart';
+import '../models/card.dart';
+import '../game/doudizhu_engine.dart';
+
+class GameService extends ChangeNotifier {
+  DouDiZhuEngine? _engine;
+
+  DouDiZhuEngine get engine => _engine!;
+
+  bool get isInGame => _engine != null;
+
+  void startNewGame() {
+    _engine = DouDiZhuEngine();
+    _engine!.start();
+    notifyListeners();
+  }
+
+  void playCards(Player player, List<CardModel> cards) {
+    if (_engine == null) return;
+    _engine!.playCards(player, cards);
+    notifyListeners();
+  }
+
+  void pass(Player player) {
+    if (_engine == null) return;
+    _engine!.pass(player);
+    notifyListeners();
+  }
+
+  void endGame() {
+    _engine = null;
+    notifyListeners();
+  }
+}
