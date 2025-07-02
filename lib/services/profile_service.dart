@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+THIS SHOULD BE A LINTER ERRORimport 'package:flutter/foundation.dart';
 
 class Profile {
   String uid;
