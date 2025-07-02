@@ -17,6 +17,7 @@ import 'services/iap_service.dart';
 import 'services/error_service.dart';
 import 'services/achievement_service.dart';
 import 'services/shop_service.dart';
+import 'services/profile_service.dart';
 import 'firebase_options.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -51,6 +52,7 @@ class DouDiZhuApp extends StatelessWidget {
         ChangeNotifierProvider<AchievementService>(
             create: (_) => AchievementService()..load()),
         ChangeNotifierProvider<ShopService>(create: (_) => ShopService()..load()),
+        ChangeNotifierProvider<ProfileService>(create: (_) => ProfileService()..load()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

@@ -6,6 +6,7 @@ import '../services/error_service.dart';
 import 'game_screen.dart';
 
 class RoomScreen extends StatelessWidget {
+  static const routeName = '/room';
   const RoomScreen({super.key});
 
   @override
