@@ -61,6 +61,26 @@ lib/
 | Analytics | 🔧 | Add `firebase_analytics` |
 | Push Notifications | 🔧 | Add `firebase_messaging` |
 
+## Assets
+
+All image, sound and animation resources live under `assets/`.  Empty README files are included as placeholders; replace them with real files before release.
+
+```
+assets/
+├─ cards/           # 54 PNG images
+├─ sounds/          # WAV / MP3 effects
+└─ animations/      # Lottie JSON
+```
+
+## Firebase
+
+A sample `firebase_options.dart` is provided with **dummy** keys.  Run `flutterfire configure` and overwrite the file with the generated one.
+
+## In-App Purchases & Ads
+
+* AdMob test IDs are used by default – change them in `AdsService`.
+* Add your product IDs in `IAPService._productIds` and set up through App Store / Play Console.
+
 ## License
 
 MIT

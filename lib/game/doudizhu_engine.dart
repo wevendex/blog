@@ -114,4 +114,47 @@ class DouDiZhuEngine {
   }
 
   Random get _random => Random();
+
+  // Serialization for multiplayer sync
+  Map<String, dynamic> toMap() {
+    return {
+      'players': players
+          .map((p) => {
+                'id': p.id,
+                'hand': p.hand.map((c) => {'s': c.suit.index, 'r': c.rank}).toList(),
+                'isLandlord': p.isLandlord,
+              })
+          .toList(),
+      'bottom': bottomCards.map((c) => {'s': c.suit.index, 'r': c.rank}).toList(),
+      'current': currentPlayer?.id,
+      'lastPlayed': lastPlayed?.map((c) => {'s': c.suit.index, 'r': c.rank}).toList(),
+    };
+  }
+
+  static DouDiZhuEngine fromMap(Map<String, dynamic> map) {
+    final engine = DouDiZhuEngine();
+    // Reconstruct players & hands
+    engine.players.clear();
+    for (var p in map['players']) {
+      final player = Player(
+        id: p['id'],
+        name: p['id'],
+        type: PlayerType.human,
+        isLandlord: p['isLandlord'] ?? false,
+        hand: (p['hand'] as List)
+            .map<CardModel>((e) => CardModel(suit: Suit.values[e['s']], rank: e['r']))
+            .toList(),
+      );
+      engine.players.add(player);
+    }
+    engine.bottomCards
+        .addAll((map['bottom'] as List).map<CardModel>((e) => CardModel(suit: Suit.values[e['s']], rank: e['r'])));
+    engine.currentPlayer = engine.players.firstWhere((p) => p.id == map['current']);
+    if (map['lastPlayed'] != null) {
+      engine.lastPlayed = (map['lastPlayed'] as List)
+          .map<CardModel>((e) => CardModel(suit: Suit.values[e['s']], rank: e['r']))
+          .toList();
+    }
+    return engine;
+  }
 }

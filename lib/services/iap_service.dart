@@ -17,9 +17,23 @@ class IAPService {
       return;
     }
 
+    await _queryProducts();
+
     _subscription = _iap.purchaseStream.listen((purchases) {
       _listenToPurchases(purchases);
     });
+  }
+
+  static const _productIds = {'coins_pack_1', 'remove_ads'};
+
+  Future<void> _queryProducts() async {
+    final response = await _iap.queryProductDetails(_productIds);
+    if (response.error != null) {
+      // Handle error
+      return;
+    }
+    // Store product details for later purchase flow
+    // TODO: expose via getter or provider
   }
 
   void _listenToPurchases(List<PurchaseDetails> purchases) {
