@@ -11,6 +11,8 @@ import 'services/ads_service.dart';
 import 'services/iap_service.dart';
 import 'firebase_options.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -50,6 +52,7 @@ class DouDiZhuApp extends StatelessWidget {
           HomeScreen.routeName: (_) => const HomeScreen(),
           GameScreen.routeName: (_) => const GameScreen(),
         },
+        navigatorKey: navigatorKey,
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class IAPService {
   static final IAPService _instance = IAPService._internal();
@@ -37,7 +39,22 @@ class IAPService {
   }
 
   void _listenToPurchases(List<PurchaseDetails> purchases) {
-    // TODO: verify & deliver purchases
+    for (final purchase in purchases) {
+      if (purchase.status == PurchaseStatus.purchased) {
+        _verifyPurchaseWithServer(purchase);
+      }
+    }
+  }
+
+  Future<void> _verifyPurchaseWithServer(PurchaseDetails purchase) async {
+    // Replace with your HTTPS endpoint.
+    const endpoint = 'https://yourserver.com/iap/verify';
+    // Send purchaseDetails to server for validation (signature / receipt).
+    // final response = await http.post(Uri.parse(endpoint), body: jsonEncode(purchase.verificationData));
+    // if (response.statusCode == 200) {
+    //   // Deliver entitlements here.
+    //   await _iap.completePurchase(purchase);
+    // }
   }
 
   Future<void> dispose() async {

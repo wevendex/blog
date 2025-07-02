@@ -8,6 +8,9 @@ import '../services/multiplayer_service.dart';
 import '../widgets/playing_card_widget.dart';
 import '../models/player.dart';
 import '../models/card.dart';
+import '../game/doudizhu_engine.dart';
+import '../services/tutorial_service.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 class GameScreen extends StatefulWidget {
   static const String routeName = '/game';
@@ -22,6 +25,10 @@ class _GameScreenState extends State<GameScreen> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _dealt = false;
 
+  final GlobalKey _playBtnKey = GlobalKey();
+  final GlobalKey _passBtnKey = GlobalKey();
+  final GlobalKey _handKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -29,13 +36,48 @@ class _GameScreenState extends State<GameScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _audioPlayer.play(AssetSource('sounds/shuffle.wav'));
       setState(() => _dealt = true);
+
+      // After cards are visible, show in-game tutorial.
+      Future.delayed(const Duration(milliseconds: 900), _showTutorial);
     });
+  }
+
+  void _showTutorial() {
+    TutorialService().showTutorial(context, [
+      TargetFocus(
+        identify: 'hand',
+        keyTarget: _handKey,
+        contents: [
+          TargetContent(child: const Text('点击手牌进行选择')),
+        ],
+      ),
+      TargetFocus(
+        identify: 'playBtn',
+        keyTarget: _playBtnKey,
+        contents: [
+          TargetContent(child: const Text('选好牌后点击这里出牌')),
+        ],
+      ),
+      TargetFocus(
+        identify: 'passBtn',
+        keyTarget: _passBtnKey,
+        contents: [
+          TargetContent(child: const Text('若无法或不想出牌，点击"不出"')),
+        ],
+      ),
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer2<GameService, MultiplayerService>(
       builder: (context, game, multiplayer, _) {
+        // Synchronize from multiplayer state if available.
+        if (multiplayer.room?.engineState != null) {
+          final eng = DouDiZhuEngine.fromMap(multiplayer.room!.engineState!);
+          game.replaceEngine(eng);
+        }
+
         if (!game.isInGame) {
           return const Scaffold(
             body: Center(child: Text('游戏未开始')),
@@ -94,6 +136,7 @@ class _GameScreenState extends State<GameScreen> {
       duration: const Duration(milliseconds: 800),
       opacity: _dealt ? 1 : 0,
       child: SingleChildScrollView(
+        key: _handKey,
         scrollDirection: Axis.horizontal,
         child: Row(
           children: player.hand
@@ -123,6 +166,7 @@ class _GameScreenState extends State<GameScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         ElevatedButton(
+          key: _playBtnKey,
           onPressed: _selected.isNotEmpty
               ? () async {
                   game.playCards(player, List.from(_selected));
@@ -140,6 +184,7 @@ class _GameScreenState extends State<GameScreen> {
         ),
         const SizedBox(width: 20),
         ElevatedButton(
+          key: _passBtnKey,
           onPressed: () async {
             game.pass(player);
             await _audioPlayer.play(AssetSource('sounds/pass.wav'));

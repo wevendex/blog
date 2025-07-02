@@ -36,4 +36,9 @@ class GameService extends ChangeNotifier {
     _engine = null;
     notifyListeners();
   }
+
+  void replaceEngine(DouDiZhuEngine eng) {
+    _engine = eng;
+    notifyListeners();
+  }
 }
