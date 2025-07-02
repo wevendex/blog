@@ -71,4 +71,11 @@ class MultiplayerService extends ChangeNotifier {
     _room = null;
     notifyListeners();
   }
+
+  Stream<List<GameRoom>>? get roomsStream =>
+      _firestore
+          .collection('rooms')
+          .where('status', isEqualTo: 'waiting')
+          .snapshots()
+          .map((snap) => snap.docs.map((d) => GameRoom.fromDoc(d)).toList());
 }

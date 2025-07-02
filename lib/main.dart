@@ -5,6 +5,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'screens/home_screen.dart';
 import 'screens/game_screen.dart';
 import 'screens/shop_screen.dart';
+import 'screens/lobby_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/leaderboard_screen.dart';
 import 'services/game_service.dart';
 import 'services/auth_service.dart';
 import 'services/multiplayer_service.dart';
@@ -59,6 +62,9 @@ class DouDiZhuApp extends StatelessWidget {
           HomeScreen.routeName: (_) => const HomeScreen(),
           GameScreen.routeName: (_) => const GameScreen(),
           ShopScreen.routeName: (_) => const ShopScreen(),
+          LobbyScreen.routeName: (_) => const LobbyScreen(),
+          ProfileScreen.routeName: (_) => const ProfileScreen(),
+          LeaderboardScreen.routeName: (_) => const LeaderboardScreen(),
         },
         navigatorKey: navigatorKey,
         scaffoldMessengerKey: ErrorService().messengerKey,

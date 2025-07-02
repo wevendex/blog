@@ -40,4 +40,6 @@ flutter:
     - assets/cards/
     - assets/sounds/
     - assets/animations/
+    - assets/achievements.json
+    - assets/shop_items.json
   # Placeholder asset directory for card images.
