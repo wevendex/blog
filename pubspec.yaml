@@ -11,6 +11,16 @@ dependencies:
   provider: ^6.0.0
   collection: ^1.17.0
   cupertino_icons: ^1.0.2
+  # Commercial integrations
+  firebase_core: ^2.10.0
+  firebase_auth: ^4.4.0
+  cloud_firestore: ^4.8.5
+  firebase_analytics: ^10.4.4
+  google_mobile_ads: ^2.4.0
+  in_app_purchase: ^3.0.6
+  tutorial_coach_mark: ^1.2.2
+  audioplayers: ^5.2.0
+  lottie: ^2.4.0
   # Placeholder for commercial integrations (ads, payments, analytics)
   # google_mobile_ads: ^2.4.0
   # in_app_purchase: ^3.0.6
@@ -26,4 +36,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/cards/
+    - assets/sounds/
+    - assets/animations/
   # Placeholder asset directory for card images.

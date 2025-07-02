@@ -9,6 +9,13 @@ A commercial-ready Flutter implementation of the classic Chinese card game DouDi
 * Local human vs two AI opponents (simple AI).
 * Card dealing, landlord assignment, turn rotation.
 * Tap-to-select cards and play/pass actions.
+* Illustrated card images, sound effects & simple animations.
+* Firebase‐based anonymous login.
+* Online multiplayer (`cloud_firestore` stub) ready.
+* Banner ads (Google Mobile Ads test id).
+* In-App Purchase service scaffold.
+* Firebase Analytics event tracking.
+* Interactive tutorial (TutorialCoachMark)
 * Modular architecture with Providers.
 * Placeholders for:
   * User authentication

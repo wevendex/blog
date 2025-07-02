@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 import '../services/game_service.dart';
+import '../services/analytics_service.dart';
 import '../widgets/playing_card_widget.dart';
 import '../models/player.dart';
 import '../models/card.dart';
@@ -16,6 +18,7 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   final List<CardModel> _selected = [];
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   Widget build(BuildContext context) {
@@ -105,8 +108,10 @@ class _GameScreenState extends State<GameScreen> {
       children: [
         ElevatedButton(
           onPressed: _selected.isNotEmpty
-              ? () {
+              ? () async {
                   game.playCards(player, List.from(_selected));
+                  await _audioPlayer.play(AssetSource('sounds/play.wav'));
+                  AnalyticsService().logPlayCards(_selected.length);
                   setState(() {
                     _selected.clear();
                   });
@@ -116,12 +121,19 @@ class _GameScreenState extends State<GameScreen> {
         ),
         const SizedBox(width: 20),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             game.pass(player);
+            await _audioPlayer.play(AssetSource('sounds/pass.wav'));
           },
           child: const Text('不出'),
         ),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
   }
 }
