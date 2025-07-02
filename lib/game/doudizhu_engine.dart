@@ -13,6 +13,7 @@ class DouDiZhuEngine {
   final Queue<Player> _turnQueue = Queue<Player>();
   Player? currentPlayer;
   List<CardModel>? lastPlayed;
+  final List<CardModel> playedCards = [];
 
   DouDiZhuEngine() {
     _init();
@@ -72,6 +73,7 @@ class DouDiZhuEngine {
       player.hand.remove(card);
     }
     lastPlayed = cards;
+    playedCards.addAll(cards);
 
     if (player.hand.isEmpty) {
       // Player wins.
@@ -93,24 +95,66 @@ class DouDiZhuEngine {
     }
   }
 
+  // Evaluate hand strength (simple heuristic): lower score is weaker.
+  int _handStrength(List<CardModel> hand) {
+    int score = 0;
+    for (var c in hand) {
+      score += c.rank; // basic
+      if (c.rank >= 15) score += 5; // 2 and jokers heavier
+    }
+    // bombs add strength
+    final freq = <int, int>{};
+    for (var c in hand) {
+      freq[c.rank] = (freq[c.rank] ?? 0) + 1;
+    }
+    score -= freq.values.where((v) => v == 4).length * 20; // strong bombs reduce score (we prefer to hold)
+    return score;
+  }
+
   void _aiTurn() {
     final ai = currentPlayer!;
 
-    // Strategy: if starting trick -> play lowest combo (prefer single), else try to beat with minimal higher combo.
+    // simple look-ahead: if a single legal play can finish hand, do it.
+    for (var i = 1; i <= ai.hand.length; i++) {
+      final subset = ai.hand.sublist(0, i);
+      final combo = analyseCombo(subset);
+      if (combo.isValid && combo.cards.length == ai.hand.length) {
+        playCards(ai, subset);
+        return;
+      }
+    }
 
-    // Build frequency map for quick lookup
+    // Build frequency map
     Map<int, List<CardModel>> byRank = {};
     for (var c in ai.hand) {
       byRank.putIfAbsent(c.rank, () => []).add(c);
     }
 
+    final isLandlord = ai.isLandlord;
+
     List<CardModel>? choosePlay() {
       if (lastPlayed == null) {
-        // Play lowest single
+        // Strategy: farmer leads with lowest single, landlord leads with combo that lowers hand strength most
+        if (!isLandlord) return [ai.hand.first];
+
+        // Landlord: choose best opening combo (straight > pair > single) but keep bombs
+        // Try straight of length >=5
+        for (int len = 8; len >= 5; len--) {
+          for (int i = 0; i + len <= ai.hand.length; i++) {
+            final subset = ai.hand.sublist(i, i + len);
+            final combo = analyseCombo(subset);
+            if (combo.type == ComboType.straight) return subset;
+          }
+        }
+        // Else pair
+        for (var entry in byRank.entries) {
+          if (entry.value.length >= 2) return entry.value.sublist(0, 2);
+        }
         return [ai.hand.first];
       }
       final prevCombo = analyseCombo(lastPlayed!);
 
+      // If cannot beat and is farmer, try to cooperate by passing.
       // singles
       if (prevCombo.type == ComboType.single) {
         for (var card in ai.hand) {
@@ -134,9 +178,35 @@ class DouDiZhuEngine {
         }
       }
 
-      // Try bomb
-      for (var entry in byRank.entries) {
-        if (entry.value.length == 4) return entry.value; // bomb
+      // Plane with wings handling (simplified): if prev is plane, see if we have bigger plane size equal
+      if (prevCombo.type == ComboType.plane) {
+        // find consecutive triples >= size
+        final neededTriples = prevCombo.cards.length ~/ 3;
+        final tripleRanks = byRank.entries.where((e) => e.value.length >= 3).map((e) => e.key).toList()..sort();
+        for (int i = 0; i + neededTriples <= tripleRanks.length; i++) {
+          bool consecutive = true;
+          for (int j = 1; j < neededTriples; j++) {
+            if (tripleRanks[i + j] != tripleRanks[i] + j) {
+              consecutive = false;
+              break;
+            }
+          }
+          if (consecutive && tripleRanks[i + neededTriples - 1] > prevCombo.mainRank) {
+            List<CardModel> play = [];
+            for (int j = 0; j < neededTriples; j++) {
+              play.addAll(byRank[tripleRanks[i + j]]!.sublist(0, 3));
+            }
+            return play;
+          }
+        }
+      }
+
+      // If opponent has few cards left, bomb; else consider holding
+      final opponentLeft = players.where((p) => p != ai).map((p) => p.hand.length).reduce((a, b) => a < b ? a : b);
+      if (opponentLeft <= 2 || isLandlord) {
+        for (var entry in byRank.entries) {
+          if (entry.value.length == 4) return entry.value; // bomb
+        }
       }
       // king bomb
       if (byRank.containsKey(16) && byRank.containsKey(17)) {
