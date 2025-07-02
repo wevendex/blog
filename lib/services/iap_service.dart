@@ -60,4 +60,12 @@ class IAPService {
   Future<void> dispose() async {
     await _subscription.cancel();
   }
+
+  Future<void> buy(String productId) async {
+    final detailsResponse = await _iap.queryProductDetails({productId});
+    if (detailsResponse.notFoundIDs.isNotEmpty) return;
+    final productDetails = detailsResponse.productDetails.first;
+    final purchaseParam = PurchaseParam(productDetails: productDetails);
+    _iap.buyConsumable(purchaseParam: purchaseParam); // for demo assume consumable
+  }
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 class Achievement {
@@ -18,8 +19,15 @@ class Achievement {
 }
 
 class AchievementService extends ChangeNotifier {
+  static final AchievementService _instance = AchievementService._internal();
+  factory AchievementService() => _instance;
+  AchievementService._internal();
+
   final Map<String, Achievement> _all = {};
   final Set<String> _earned = {};
+
+  final _controller = StreamController<Achievement>.broadcast();
+  Stream<Achievement> get newAchievementStream => _controller.stream;
 
   List<Achievement> get earned => _earned.map((e) => _all[e]!).toList();
 
@@ -38,6 +46,13 @@ class AchievementService extends ChangeNotifier {
     if (!_all.containsKey(id)) return;
     if (_earned.add(id)) {
       notifyListeners();
+      _controller.add(_all[id]!);
     }
+  }
+
+  @override
+  void dispose() {
+    _controller.close();
+    super.dispose();
   }
 }

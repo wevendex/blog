@@ -14,6 +14,7 @@ import '../models/card.dart';
 import '../game/doudizhu_engine.dart';
 import '../services/tutorial_service.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import '../services/achievement_service.dart';
 
 class GameScreen extends StatefulWidget {
   static const String routeName = '/game';
@@ -45,6 +46,13 @@ class _GameScreenState extends State<GameScreen> {
 
       // After cards are visible, show in-game tutorial.
       Future.delayed(const Duration(milliseconds: 900), _showTutorial);
+    });
+
+    AchievementService().newAchievementStream.listen((ach) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('成就解锁: ${ach.title} +${ach.chips}金币')));
+      }
     });
   }
 
