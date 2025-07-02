@@ -108,7 +108,7 @@ class DailyTasksCard extends ConsumerWidget {
     final controller = ref.read(dailyTasksControllerProvider.notifier);
     final progress = controller.getTaskProgressPercentage();
     final completedTasks = controller.getTaskProgress();
-    final totalTasks = 5;
+    const totalTasks = 5;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

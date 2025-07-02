@@ -45,7 +45,7 @@ class _CustomButtonState extends State<CustomButton>
   late Animation<double> _scaleAnimation;
   late Animation<double> _shadowAnimation;
 
-  bool _isPressed = false;
+  // bool _isPressed = false; // 暂时不使用
 
   @override
   void initState() {
@@ -81,21 +81,21 @@ class _CustomButtonState extends State<CustomButton>
 
   void _handleTapDown(TapDownDetails details) {
     if (widget.onPressed != null && widget.enableAnimation) {
-      setState(() => _isPressed = true);
+      // setState(() => _isPressed = true);
       _animationController.forward();
     }
   }
 
   void _handleTapUp(TapUpDetails details) {
     if (widget.enableAnimation) {
-      setState(() => _isPressed = false);
+      // setState(() => _isPressed = false);
       _animationController.reverse();
     }
   }
 
   void _handleTapCancel() {
     if (widget.enableAnimation) {
-      setState(() => _isPressed = false);
+      // setState(() => _isPressed = false);
       _animationController.reverse();
     }
   }

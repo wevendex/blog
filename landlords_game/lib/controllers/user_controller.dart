@@ -303,7 +303,7 @@ class DailyTasksController extends StateNotifier<DailyTasksState> {
 
   // 获取任务进度
   int getTaskProgress() {
-    final totalTasks = 5;
+    const totalTasks = 5;
     final completedTasks = state.tasks.values
         .where((value) => value == true && !value.toString().contains('dailyClaimed'))
         .length;
@@ -312,9 +312,9 @@ class DailyTasksController extends StateNotifier<DailyTasksState> {
 
   // 获取任务完成百分比
   double getTaskProgressPercentage() {
-    final totalTasks = 5;
+    // const totalTasks = 5; // 使用固定数字5替代
     final completedTasks = getTaskProgress();
-    return completedTasks / totalTasks;
+    return completedTasks / 5;
   }
 
   // 检查所有任务是否完成

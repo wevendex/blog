@@ -59,9 +59,9 @@ class CustomTextField extends StatefulWidget {
 class _CustomTextFieldState extends State<CustomTextField>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  late Animation<double> _focusAnimation;
+  // late Animation<double> _focusAnimation; // 暂时不使用
   late Animation<Color?> _borderColorAnimation;
-  late Animation<double> _labelAnimation;
+  // late Animation<double> _labelAnimation; // 暂时不使用
 
   late FocusNode _focusNode;
   bool _isFocused = false;
@@ -82,13 +82,13 @@ class _CustomTextFieldState extends State<CustomTextField>
       vsync: this,
     );
 
-    _focusAnimation = Tween<double>(
+    /*_focusAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeInOut,
-    ));
+    ));*/
 
     _borderColorAnimation = ColorTween(
       begin: Colors.white24,
@@ -98,13 +98,13 @@ class _CustomTextFieldState extends State<CustomTextField>
       curve: Curves.easeInOut,
     ));
 
-    _labelAnimation = Tween<double>(
+    /*_labelAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeInOut,
-    ));
+    ));*/
   }
 
   void _setupFocusListener() {
