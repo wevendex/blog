@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import '../services/game_service.dart';
 import '../services/analytics_service.dart';
 import '../services/multiplayer_service.dart';
+import '../utils/tone_generator.dart';
 import '../widgets/playing_card_widget.dart';
 import '../models/player.dart';
 import '../models/card.dart';
@@ -34,7 +35,7 @@ class _GameScreenState extends State<GameScreen> {
     super.initState();
     // Start dealing animation when screen appears
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _audioPlayer.play(AssetSource('sounds/shuffle.wav'));
+      await _audioPlayer.play(BytesSource(ToneGenerator.generateTone(freq: 300, durationSeconds: 0.4)));
       setState(() => _dealt = true);
 
       // After cards are visible, show in-game tutorial.
@@ -170,7 +171,7 @@ class _GameScreenState extends State<GameScreen> {
           onPressed: _selected.isNotEmpty
               ? () async {
                   game.playCards(player, List.from(_selected));
-                  await _audioPlayer.play(AssetSource('sounds/play.wav'));
+                  await _audioPlayer.play(BytesSource(ToneGenerator.generateTone(freq: 600)));
                   AnalyticsService().logPlayCards(_selected.length);
                   setState(() {
                     _selected.clear();
@@ -187,7 +188,7 @@ class _GameScreenState extends State<GameScreen> {
           key: _passBtnKey,
           onPressed: () async {
             game.pass(player);
-            await _audioPlayer.play(AssetSource('sounds/pass.wav'));
+            await _audioPlayer.play(BytesSource(ToneGenerator.generateTone(freq: 200)));
             if (multiplayer.room != null) {
               multiplayer.updateEngine(game.engine);
             }

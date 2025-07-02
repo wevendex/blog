@@ -26,7 +26,7 @@ class IAPService {
     });
   }
 
-  static const _productIds = {'coins_pack_1', 'remove_ads'};
+  static const _productIds = {'android.test.purchased', 'android.test.canceled'};
 
   Future<void> _queryProducts() async {
     final response = await _iap.queryProductDetails(_productIds);
