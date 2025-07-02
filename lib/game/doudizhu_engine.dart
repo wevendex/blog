@@ -4,6 +4,7 @@ import 'dart:math';
 import '../models/deck.dart';
 import '../models/player.dart';
 import '../models/card.dart';
+import 'combo.dart';
 
 class DouDiZhuEngine {
   late final List<Player> players;
@@ -59,8 +60,14 @@ class DouDiZhuEngine {
 
   void playCards(Player player, List<CardModel> cards) {
     if (player != currentPlayer) return;
-    // TODO: Validate rules
-    // Remove cards from hand
+    final combo = analyseCombo(cards);
+    if (!combo.isValid) return;
+
+    if (lastPlayed != null) {
+      final prevCombo = analyseCombo(lastPlayed!);
+      if (!canBeat(combo, prevCombo)) return;
+    }
+
     for (var card in cards) {
       player.hand.remove(card);
     }
@@ -87,29 +94,62 @@ class DouDiZhuEngine {
   }
 
   void _aiTurn() {
-    // Very naive AI: plays first valid single card higher than last played single, else random.
     final ai = currentPlayer!;
-    if (ai.hand.isEmpty) {
-      _advanceTurn();
-      return;
+
+    // Strategy: if starting trick -> play lowest combo (prefer single), else try to beat with minimal higher combo.
+
+    // Build frequency map for quick lookup
+    Map<int, List<CardModel>> byRank = {};
+    for (var c in ai.hand) {
+      byRank.putIfAbsent(c.rank, () => []).add(c);
     }
 
-    List<CardModel> play = [];
-    if (lastPlayed == null || lastPlayed!.length != 1) {
-      play = [ai.hand.first];
-    } else {
-      for (var card in ai.hand) {
-        if (card.rank > lastPlayed!.first.rank) {
-          play = [card];
-          break;
+    List<CardModel>? choosePlay() {
+      if (lastPlayed == null) {
+        // Play lowest single
+        return [ai.hand.first];
+      }
+      final prevCombo = analyseCombo(lastPlayed!);
+
+      // singles
+      if (prevCombo.type == ComboType.single) {
+        for (var card in ai.hand) {
+          if (card.rank > prevCombo.mainRank) return [card];
         }
       }
-      if (play.isEmpty) {
-        pass(ai);
-        return;
+      // pair
+      if (prevCombo.type == ComboType.pair) {
+        for (var entry in byRank.entries) {
+          if (entry.value.length >= 2 && entry.key > prevCombo.mainRank) {
+            return entry.value.sublist(0, 2);
+          }
+        }
       }
+      // triple
+      if (prevCombo.type == ComboType.triple) {
+        for (var entry in byRank.entries) {
+          if (entry.value.length >= 3 && entry.key > prevCombo.mainRank) {
+            return entry.value.sublist(0, 3);
+          }
+        }
+      }
+
+      // Try bomb
+      for (var entry in byRank.entries) {
+        if (entry.value.length == 4) return entry.value; // bomb
+      }
+      // king bomb
+      if (byRank.containsKey(16) && byRank.containsKey(17)) {
+        return [byRank[16]!.first, byRank[17]!.first];
+      }
+      return null;
     }
 
+    final play = choosePlay();
+    if (play == null) {
+      pass(ai);
+      return;
+    }
     playCards(ai, play);
   }
 
