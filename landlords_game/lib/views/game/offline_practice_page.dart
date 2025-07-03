@@ -20,6 +20,10 @@ class _OfflinePracticePageState extends State<OfflinePracticePage> {
   late List<CardModel> _bottomCards;
 
   bool _isMyTurn = true;
+  String _currentPlayer = 'player'; // player, left, right
+
+  List<CardModel> _currentTrick = [];
+  String? _lastPlayedBy;
 
   @override
   void initState() {
@@ -36,6 +40,9 @@ class _OfflinePracticePageState extends State<OfflinePracticePage> {
     _leftHand = deck.sublist(17, 34);
     _rightHand = deck.sublist(34, 51);
     _bottomCards = deck.sublist(51);
+
+    // 随机决定先手，这里固定玩家先手
+    _currentPlayer = 'player';
   }
 
   @override
@@ -163,17 +170,44 @@ class _OfflinePracticePageState extends State<OfflinePracticePage> {
 
   Widget _buildPlayArea() {
     return Center(
-      child: Container(
-        width: 200.w,
-        height: 80.h,
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: Colors.white24, width: 1),
-        ),
-        child: Center(
-          child: Text('出牌区', style: TextStyle(fontSize: 16.sp, color: Colors.white54)),
-        ),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: _currentTrick.isEmpty
+            ? Container(
+                key: const ValueKey('empty'),
+                width: 200.w,
+                height: 80.h,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: Colors.white24, width: 1),
+                ),
+                child: Center(
+                  child: Text('出牌区', style: TextStyle(fontSize: 16.sp, color: Colors.white54)),
+                ),
+              )
+            : Container(
+                key: ValueKey(_currentTrick.hashCode),
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: AppTheme.goldColor.withOpacity(0.5)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: _currentTrick
+                      .map((c) => Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 2.w),
+                            child: Text(c.displayName,
+                                style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: c.isRed ? Colors.red : Colors.white)),
+                          ))
+                      .toList(),
+                ),
+              ),
       ),
     );
   }
@@ -220,33 +254,22 @@ class _OfflinePracticePageState extends State<OfflinePracticePage> {
       bottom: 80.h,
       left: 0,
       right: 0,
-      child: SizedBox(
-        height: 80.h,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          itemCount: _playerHand.length,
-          itemBuilder: (_, i) => _buildCardBack(),
+      child: RepaintBoundary(
+        child: SizedBox(
+          height: 80.h,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
+            cacheExtent: 400,
+            itemCount: _playerHand.length,
+            itemBuilder: (_, i) => _buildCardBack(),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildCardBack() {
-    return Container(
-      width: 45.w,
-      height: 70.h,
-      margin: EdgeInsets.only(right: 2.w),
-      decoration: BoxDecoration(
-        gradient: AppTheme.cardBackgroundGradient,
-        borderRadius: BorderRadius.circular(6.r),
-        border: Border.all(color: Colors.black26),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2)),
-        ],
-      ),
-    );
-  }
+  Widget _buildCardBack() => const _CardBack();
 
   Widget _buildActionButtons() {
     return Positioned(
@@ -257,7 +280,7 @@ class _OfflinePracticePageState extends State<OfflinePracticePage> {
         children: [
           Expanded(
             child: CustomButton(
-              onPressed: () => AudioService().playButtonClick(),
+              onPressed: _isMyTurn ? _handlePass : null,
               height: 44.h,
               backgroundColor: Colors.grey,
               child: Text('过', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
@@ -266,7 +289,7 @@ class _OfflinePracticePageState extends State<OfflinePracticePage> {
           SizedBox(width: 12.w),
           Expanded(
             child: CustomButton(
-              onPressed: _isMyTurn ? () => AudioService().playCardPlay() : null,
+              onPressed: _isMyTurn ? _handlePlayerPlay : null,
               height: 44.h,
               child: Text('出牌', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
             ),
@@ -280,6 +303,114 @@ class _OfflinePracticePageState extends State<OfflinePracticePage> {
               child: Text('提示', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  // =================  游戏逻辑  =================
+
+  void _handlePlayerPlay() {
+    if (_playerHand.isEmpty) return;
+    final card = _playerHand.removeAt(0);
+    _playCards('player', [card]);
+  }
+
+  void _handlePass() {
+    _nextTurn();
+  }
+
+  void _playCards(String actor, List<CardModel> cards) {
+    setState(() {
+      _currentTrick = cards;
+      _lastPlayedBy = actor;
+    });
+    AudioService().playCardPlay();
+
+    // 判断胜利
+    if (_playerHand.isEmpty || _leftHand.isEmpty || _rightHand.isEmpty) {
+      _showWinDialog(actor);
+      return;
+    }
+
+    _nextTurn();
+  }
+
+  void _nextTurn() {
+    setState(() {
+      if (_currentPlayer == 'player') {
+        _currentPlayer = 'left';
+      } else if (_currentPlayer == 'left') {
+        _currentPlayer = 'right';
+      } else {
+        _currentPlayer = 'player';
+      }
+
+      _isMyTurn = _currentPlayer == 'player';
+    });
+
+    if (!_isMyTurn) {
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (!mounted) return;
+        _aiPlay(_currentPlayer);
+      });
+    }
+  }
+
+  void _aiPlay(String actor) {
+    List<CardModel> hand;
+    if (actor == 'left') {
+      hand = _leftHand;
+    } else {
+      hand = _rightHand;
+    }
+
+    if (hand.isEmpty) return;
+
+    // 简易 AI：总是出第一张
+    final card = hand.removeAt(0);
+    _playCards(actor, [card]);
+  }
+
+  void _showWinDialog(String winner) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardColor,
+        title: Text('游戏结束', style: TextStyle(color: AppTheme.goldColor)),
+        content: Text('$winner 获胜！', style: const TextStyle(color: Colors.white)),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: const Text('返回首页'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ======= 小部件 =======
+
+class _CardBack extends StatelessWidget {
+  const _CardBack();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 45.w,
+      height: 70.h,
+      margin: EdgeInsets.only(right: 2.w),
+      decoration: BoxDecoration(
+        gradient: AppTheme.cardBackgroundGradient,
+        borderRadius: BorderRadius.circular(6.r),
+        border: Border.all(color: Colors.black26),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2)),
         ],
       ),
     );
