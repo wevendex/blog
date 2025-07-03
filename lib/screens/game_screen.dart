@@ -273,35 +273,45 @@ class _GameScreenState extends State<GameScreen> {
             ],
           ),
           
-          // 手牌背面显示
+          // 手牌背面显示（使用 Stack 实现重叠效果）
           const SizedBox(width: 16),
-          ...List.generate(
-            math.min(ai.hand.length, 8), // 最多显示8张牌背面
-            (index) => Container(
-              margin: EdgeInsets.only(left: index * -25.0),
-              child: Transform.rotate(
-                angle: (index - 4) * 0.1, // 轻微的扇形排列
-                child: Container(
-                  width: 50,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF1e3c72), Color(0xFF2a5298)],
-                    ),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: Colors.white24),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      '🂠',
-                      style: TextStyle(fontSize: 24, color: Colors.white),
-                    ),
+          SizedBox(
+            width: 50 + (math.min(ai.hand.length, 8) - 1) * 25,
+            height: 80,
+            child: Stack(
+              children: List.generate(
+                math.min(ai.hand.length, 8),
+                (index) => Positioned(
+                  left: index * 25.0,
+                  child: Transform.rotate(
+                    angle: (index - 4) * 0.1,
+                    child: _buildCardBack(),
                   ),
                 ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCardBack() {
+    return Container(
+      width: 50,
+      height: 70,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1e3c72), Color(0xFF2a5298)],
+        ),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: const Center(
+        child: Text(
+          '🂠',
+          style: TextStyle(fontSize: 24, color: Colors.white),
+        ),
       ),
     );
   }
