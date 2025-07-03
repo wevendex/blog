@@ -6,6 +6,8 @@ import 'dart:async';
 import '../../core/themes/app_theme.dart';
 import '../../core/services/audio_service.dart';
 import '../../widgets/custom_button.dart';
+import '../../models/card_model.dart';
+import 'package:collection/collection.dart';
 
 class GamePlayPage extends StatefulWidget {
   final String gameId;
@@ -25,6 +27,12 @@ class _GamePlayPageState extends State<GamePlayPage> {
   int _remainingTime = 15; // 每回合 15 秒
   
   bool isMyTurn = true;
+  // 手牌及牌面数据
+  List<CardModel> myCards = [];
+  List<CardModel> leftCards = [];
+  List<CardModel> rightCards = [];
+  List<CardModel> lastPlayedCards = [];
+
   int playerCards = 17;
   int leftPlayerCards = 17;
   int rightPlayerCards = 17;
@@ -33,6 +41,7 @@ class _GamePlayPageState extends State<GamePlayPage> {
   @override
   void initState() {
     super.initState();
+    _dealCards();
     _startTurnTimer();
   }
 
@@ -58,14 +67,63 @@ class _GamePlayPageState extends State<GamePlayPage> {
     });
   }
 
-  // 时间到自动出牌（简化为过牌示例）
+  // 发牌：简单随机发 17 张给每个玩家，剩余 3 张作底牌
+  void _dealCards() {
+    final deck = CardFactory.shuffleDeck(CardFactory.createFullDeck());
+
+    myCards = deck.sublist(0, 17)..sort(CardComparator.compare);
+    leftCards = deck.sublist(17, 34);
+    rightCards = deck.sublist(34, 51);
+    final bottom = deck.sublist(51);
+
+    setState(() {
+      playerCards = myCards.length;
+      leftPlayerCards = leftCards.length;
+      rightPlayerCards = rightCards.length;
+      bottomCards = bottom.map((c) => c.displayName).toList();
+    });
+  }
+
   void _autoPlay() {
     if (!mounted) return;
-    // TODO: 替换为真正的出牌算法
+
+    List<CardModel> playCards = [];
+
+    // 简单牌型：仅支持单张比较
+    if (lastPlayedCards.isEmpty) {
+      // 我先出，出最小的一张
+      playCards.add(myCards.first);
+    } else if (lastPlayedCards.length == 1) {
+      final int lastWeight = lastPlayedCards.first.weight;
+      // 找到第一张能压过的牌
+      final higher = myCards.firstWhereOrNull((c) => c.weight > lastWeight);
+      if (higher != null) {
+        playCards.add(higher);
+      }
+    }
+
+    if (playCards.isEmpty) {
+      // 过牌
+      AudioService().playButtonClick();
+      setState(() {
+        isMyTurn = false;
+        // 继续下一位玩家逻辑尚未实现
+      });
+      return;
+    }
+
+    // 打出 playCards
+    for (final card in playCards) {
+      myCards.removeWhere((c) => c.id == card.id);
+    }
+
+    AudioService().playCardPlay();
+
     setState(() {
-      isMyTurn = false;
+      lastPlayedCards = playCards;
+      playerCards = myCards.length;
+      isMyTurn = false; // 轮到下家（未实现完整逻辑）
     });
-    AudioService().playButtonClick();
   }
 
   @override
@@ -249,10 +307,14 @@ class _GamePlayPageState extends State<GamePlayPage> {
   }
 
   Widget _buildPlayArea() {
+    final display = lastPlayedCards.isEmpty
+        ? '出牌区'
+        : lastPlayedCards.map((c) => c.displayName).join(' ');
+
     return Center(
       child: Container(
-        width: 200.w,
-        height: 80.h,
+        width: 220.w,
+        height: 90.h,
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12.r),
@@ -263,10 +325,11 @@ class _GamePlayPageState extends State<GamePlayPage> {
         ),
         child: Center(
           child: Text(
-            '出牌区',
+            display,
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 16.sp,
-              color: Colors.white54,
+              fontSize: 14.sp,
+              color: Colors.white,
             ),
           ),
         ),
