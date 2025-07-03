@@ -176,7 +176,7 @@ class CardTracker extends StatelessWidget {
 
   String _getCardDisplayValue(CardModel card) {
     // 处理特殊牌面值
-    switch (card.value) {
+    switch (card.rank) {
       case 11:
         return 'J';
       case 12:
@@ -192,7 +192,7 @@ class CardTracker extends StatelessWidget {
       case 17:
         return '大王';
       default:
-        return card.value.toString();
+        return card.rank.toString();
     }
   }
 }
@@ -217,7 +217,7 @@ class CardTrackerManager {
   // 获取指定类型牌的剩余数量
   static int getRemainingCount(int cardValue) {
     final playedCount = _allPlayedCards
-        .where((card) => card.value == cardValue)
+        .where((card) => card.rank == cardValue)
         .length;
     
     // 确定初始数量
