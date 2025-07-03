@@ -13,7 +13,8 @@ class OfflinePracticePage extends StatefulWidget {
   State<OfflinePracticePage> createState() => _OfflinePracticePageState();
 }
 
-class _OfflinePracticePageState extends State<OfflinePracticePage> {
+class _OfflinePracticePageState extends State<OfflinePracticePage>
+    with AutomaticKeepAliveClientMixin<OfflinePracticePage>, TickerProviderStateMixin {
   late List<CardModel> _playerHand;
   late List<CardModel> _leftHand;
   late List<CardModel> _rightHand;
@@ -25,10 +26,24 @@ class _OfflinePracticePageState extends State<OfflinePracticePage> {
   List<CardModel> _currentTrick = [];
   String? _lastPlayedBy;
 
+  // 特效动画
+  late AnimationController _effectController;
+  late Animation<double> _effectScale;
+  String? _specialEffect; // 'bomb' | 'rocket'
+
   @override
   void initState() {
     super.initState();
     _initGame();
+    _effectController = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    _effectScale = Tween<double>(begin: 0.5, end: 1.4).animate(CurvedAnimation(parent: _effectController, curve: Curves.elasticOut));
+    _effectController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) setState(() => _specialEffect = null);
+        });
+      }
+    });
   }
 
   void _initGame() {
@@ -43,6 +58,12 @@ class _OfflinePracticePageState extends State<OfflinePracticePage> {
 
     // 随机决定先手，这里固定玩家先手
     _currentPlayer = 'player';
+  }
+
+  @override
+  void dispose() {
+    _effectController.dispose();
+    super.dispose();
   }
 
   @override
@@ -65,6 +86,7 @@ class _OfflinePracticePageState extends State<OfflinePracticePage> {
                     _buildPlayArea(),
                     _buildBottomCards(),
                     _buildPlayerCards(),
+                    _buildSpecialEffect(),
                     _buildActionButtons(),
                   ],
                 ),
@@ -271,6 +293,18 @@ class _OfflinePracticePageState extends State<OfflinePracticePage> {
 
   Widget _buildCardBack() => const _CardBack();
 
+  Widget _buildSpecialEffect() {
+    if (_specialEffect == null) return const SizedBox.shrink();
+    IconData icon = _specialEffect == 'bomb' ? Icons.whatshot : Icons.flash_on;
+    Color color = _specialEffect == 'bomb' ? Colors.redAccent : Colors.orangeAccent;
+    return Center(
+      child: ScaleTransition(
+        scale: _effectScale,
+        child: Icon(icon, size: 120.w, color: color.withOpacity(0.8)),
+      ),
+    );
+  }
+
   Widget _buildActionButtons() {
     return Positioned(
       bottom: 20.h,
@@ -327,6 +361,13 @@ class _OfflinePracticePageState extends State<OfflinePracticePage> {
     });
     AudioService().playCardPlay();
 
+    // 检测炸弹/火箭
+    if (cards.length == 4 && cards.map((e) => e.rank).toSet().length == 1) {
+      _triggerSpecial('bomb');
+    } else if (cards.length == 2 && cards.every((e) => e.isJoker)) {
+      _triggerSpecial('rocket');
+    }
+
     // 判断胜利
     if (_playerHand.isEmpty || _leftHand.isEmpty || _rightHand.isEmpty) {
       _showWinDialog(actor);
@@ -367,9 +408,53 @@ class _OfflinePracticePageState extends State<OfflinePracticePage> {
 
     if (hand.isEmpty) return;
 
-    // 简易 AI：总是出第一张
-    final card = hand.removeAt(0);
-    _playCards(actor, [card]);
+    final play = _randomLegalPlay(hand);
+    for (final c in play) {
+      hand.remove(c);
+    }
+    _playCards(actor, play);
+  }
+
+  // 随机合法出牌（仅考虑单张/对子/三条/炸弹/火箭）
+  List<CardModel> _randomLegalPlay(List<CardModel> hand) {
+    final Map<int, List<CardModel>> byRank = {};
+    for (var c in hand) {
+      byRank.putIfAbsent(c.rank, () => []).add(c);
+    }
+
+    final List<List<CardModel>> candidates = [];
+
+    // 单张
+    for (var c in hand) {
+      candidates.add([c]);
+    }
+
+    // 对子/三张/四张
+    byRank.forEach((rank, cards) {
+      if (cards.length >= 2) {
+        candidates.add(cards.sublist(0, 2));
+      }
+      if (cards.length >= 3) {
+        candidates.add(cards.sublist(0, 3));
+      }
+      if (cards.length == 4) {
+        candidates.add(cards); // 炸弹
+      }
+    });
+
+    // 火箭
+    final jokers = hand.where((c) => c.isJoker).toList();
+    if (jokers.length == 2) {
+      candidates.add(jokers);
+    }
+
+    candidates.shuffle();
+    return candidates.first;
+  }
+
+  void _triggerSpecial(String effect) {
+    setState(() => _specialEffect = effect);
+    _effectController.forward(from: 0);
   }
 
   void _showWinDialog(String winner) {
@@ -392,6 +477,9 @@ class _OfflinePracticePageState extends State<OfflinePracticePage> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 // ======= 小部件 =======
