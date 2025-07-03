@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:async';
 
 import '../../core/themes/app_theme.dart';
 import '../../core/services/audio_service.dart';
@@ -19,11 +20,53 @@ class GamePlayPage extends StatefulWidget {
 }
 
 class _GamePlayPageState extends State<GamePlayPage> {
+  // 添加回合倒计时相关变量
+  Timer? _turnTimer;
+  int _remainingTime = 15; // 每回合 15 秒
+  
   bool isMyTurn = true;
   int playerCards = 17;
   int leftPlayerCards = 17;
   int rightPlayerCards = 17;
   List<String> bottomCards = ['大王', '小王', '2♠'];
+
+  @override
+  void initState() {
+    super.initState();
+    _startTurnTimer();
+  }
+
+  @override
+  void dispose() {
+    _turnTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startTurnTimer() {
+    _turnTimer?.cancel();
+    setState(() => _remainingTime = 15);
+
+    _turnTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+
+      if (_remainingTime > 0) {
+        setState(() => _remainingTime--);
+      } else {
+        timer.cancel();
+        _autoPlay();
+      }
+    });
+  }
+
+  // 时间到自动出牌（简化为过牌示例）
+  void _autoPlay() {
+    if (!mounted) return;
+    // TODO: 替换为真正的出牌算法
+    setState(() {
+      isMyTurn = false;
+    });
+    AudioService().playButtonClick();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,11 +97,23 @@ class _GamePlayPageState extends State<GamePlayPage> {
                     // 中央出牌区
                     _buildPlayArea(),
                     
+                    // 左侧玩家手牌
+                    _buildLeftPlayerCards(),
+                    
+                    // 右侧玩家手牌
+                    _buildRightPlayerCards(),
+                    
+                    // 上方玩家手牌
+                    _buildTopPlayerCards(),
+                    
                     // 底牌显示
                     _buildBottomCards(),
                     
                     // 当前玩家手牌区
                     _buildPlayerCards(),
+                    
+                    // 回合倒计时
+                    _buildCountdown(),
                     
                     // 操作按钮
                     _buildActionButtons(),
@@ -376,6 +431,111 @@ class _GamePlayPageState extends State<GamePlayPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCountdown() {
+    if (!isMyTurn) return const SizedBox.shrink();
+    return Positioned(
+      bottom: 160.h,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.4),
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+          child: Text(
+            '$_remainingTime',
+            style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.goldColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 生成一张背面朝上的牌
+  Widget _buildCardBack({double width = 40, double height = 50}) {
+    return Container(
+      width: width.w,
+      height: height.h,
+      decoration: BoxDecoration(
+        color: Colors.blueGrey.shade200,
+        borderRadius: BorderRadius.circular(6.r),
+        border: Border.all(color: Colors.black26, width: 1),
+      ),
+    );
+  }
+
+  // 左侧玩家手牌（纵向叠放）
+  Widget _buildLeftPlayerCards() {
+    final double overlap = 18.h;
+    return Positioned(
+      left: 12.w,
+      top: MediaQuery.of(context).size.height * 0.25,
+      child: SizedBox(
+        width: 45.w,
+        height: overlap * (leftPlayerCards - 1) + 60.h,
+        child: Stack(
+          children: List.generate(leftPlayerCards, (index) {
+            return Positioned(
+              top: index * overlap,
+              child: _buildCardBack(width: 45, height: 60),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  // 右侧玩家手牌（纵向叠放）
+  Widget _buildRightPlayerCards() {
+    final double overlap = 18.h;
+    return Positioned(
+      right: 12.w,
+      top: MediaQuery.of(context).size.height * 0.25,
+      child: SizedBox(
+        width: 45.w,
+        height: overlap * (rightPlayerCards - 1) + 60.h,
+        child: Stack(
+          children: List.generate(rightPlayerCards, (index) {
+            return Positioned(
+              top: index * overlap,
+              child: _buildCardBack(width: 45, height: 60),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  // 上方玩家手牌（横向叠放）
+  Widget _buildTopPlayerCards() {
+    final double overlap = 24.w;
+    return Positioned(
+      top: 60.h,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: SizedBox(
+          height: 60.h,
+          width: overlap * (leftPlayerCards - 1) + 45.w,
+          child: Stack(
+            children: List.generate(leftPlayerCards, (index) {
+              return Positioned(
+                left: index * overlap,
+                child: _buildCardBack(width: 45, height: 60),
+              );
+            }),
+          ),
+        ),
       ),
     );
   }
