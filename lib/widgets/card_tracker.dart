@@ -81,7 +81,7 @@ class CardTracker extends StatelessWidget {
         crossAxisCount: 5,
         crossAxisSpacing: 6,
         mainAxisSpacing: 6,
-        childAspectRatio: 1.1,
+        childAspectRatio: 0.85,
       ),
       itemCount: cardTypes.length,
       itemBuilder: (context, index) {
@@ -128,7 +128,7 @@ class CardTracker extends StatelessWidget {
             Text(
               cardType,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -138,7 +138,7 @@ class CardTracker extends StatelessWidget {
             Text(
               remainingCount.toString(),
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: getCountColor(),
               ),
