@@ -12,6 +12,7 @@ import 'views/shop/shop_page.dart';
 import 'views/profile/profile_page.dart';
 import 'views/leaderboard/leaderboard_page.dart';
 import 'views/auth/splash_page.dart';
+import 'views/game/offline_practice_page.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -85,6 +86,13 @@ class AppRouter {
         path: '/leaderboard',
         name: 'leaderboard',
         builder: (context, state) => const LeaderboardPage(),
+      ),
+
+      // 单机练习
+      GoRoute(
+        path: '/offline-practice',
+        name: 'offline-practice',
+        builder: (context, state) => const OfflinePracticePage(),
       ),
     ],
     errorBuilder: (context, state) => const NotFoundPage(),

@@ -38,7 +38,9 @@ class _HomePageState extends ConsumerState<HomePage>
     );
 
     // 为每个卡片创建交错动画
-    _cardAnimations = List.generate(6, (index) {
+    // 0:UserInfo 1:QuickMatch 2:DailyTasks 3~n:Feature cards
+    // 这里预留 8 个动画槽，足够当前及后续功能使用
+    _cardAnimations = List.generate(8, (index) {
       return Tween<double>(
         begin: 0.0,
         end: 1.0,
@@ -242,6 +244,7 @@ class _HomePageState extends ConsumerState<HomePage>
 
   Widget _buildFeatureGrid() {
     final features = [
+      {'icon': Icons.computer, 'title': '单机练习', 'route': '/offline-practice'},
       {'icon': Icons.store, 'title': '商城', 'route': '/shop'},
       {'icon': Icons.leaderboard, 'title': '排行榜', 'route': '/leaderboard'},
       {'icon': Icons.emoji_events, 'title': '锦标赛', 'route': '/tournament'},
