@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>斗地主卡牌游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 强制横屏布局 */
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-width: 1024px;
+            background: radial-gradient(circle at center, #2d5a27 0%, #1a3d1a 100%);
+            overflow: hidden;
+        }
+
+        /* 游戏头部 */
+        .game-header {
+            height: 80px;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        /* 记牌器 */
+        .card-tracker {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            max-width: 400px;
+            color: white;
+            backdrop-filter: blur(5px);
+        }
+
+        .tracker-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            color: #ffd700;
+        }
+
+        .card-count {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .count-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        /* 游戏信息 */
+        .game-info {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .score-board {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        /* 主游戏区域 */
+        .game-board {
+            flex: 1;
+            position: relative;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* 对手区域 */
+        .opponent-area {
+            display: flex;
+            justify-content: space-between;
+            height: 120px;
+        }
+
+        .opponent {
+            position: relative;
+            width: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .opponent-cards {
+            display: flex;
+            gap: -20px;
+        }
+
+        /* 中央出牌区域 */
+        .center-area {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .played-cards {
+            display: flex;
+            gap: 10px;
+            min-height: 100px;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+        }
+
+        /* 玩家手牌区域 */
+        .player-area {
+            height: 160px;
+            display: flex;
+            justify-content: center;
+            align-items: end;
+            position: relative;
+        }
+
+        .player-cards {
+            display: flex;
+            gap: -15px;
+            padding: 0 20px;
+        }
+
+        /* 卡牌样式 */
+        .card {
+            width: 60px;
+            height: 84px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 6px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover {
+            transform: translateY(-20px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+        }
+
+        .card.selected {
+            transform: translateY(-30px);
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+
+        .card-value {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .card-suit {
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .red {
+            color: #ff0000;
+        }
+
+        .black {
+            color: #000000;
+        }
+
+        /* 操作按钮 */
+        .action-buttons {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-play {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .btn-pass {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+            color: white;
+        }
+
+        .btn-hint {
+            background: linear-gradient(45deg, #00b894, #00a085);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 动画效果 */
+        @keyframes cardPlay {
+            0% {
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                transform: translateY(-50px) scale(1.2);
+            }
+            100% {
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .card.playing {
+            animation: cardPlay 0.6s ease-in-out;
+        }
+
+        @keyframes cardDeal {
+            from {
+                transform: translateX(-100px) rotate(-90deg);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .card.dealing {
+            animation: cardDeal 0.5s ease-out;
+        }
+
+        /* 玩家信息 */
+        .player-info {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .player-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .card-count-display {
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .game-container {
+                min-width: 100vw;
+            }
+            
+            .card {
+                width: 50px;
+                height: 70px;
+                font-size: 12px;
+            }
+            
+            .card-tracker {
+                max-width: 300px;
+                font-size: 12px;
+            }
+        }
+
+        /* 旋转提示 */
+        .rotate-hint {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            z-index: 1000;
+        }
+
+        @media (orientation: portrait) and (max-width: 1024px) {
+            .rotate-hint {
+                display: flex;
+            }
+            .game-container {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="rotate-hint">
+        <div style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 20px;">📱</div>
+            <div>请将设备旋转为横屏模式</div>
+            <div style="font-size: 16px; margin-top: 10px; opacity: 0.7;">以获得最佳游戏体验</div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- 游戏头部 -->
+        <div class="game-header">
+            <div class="card-tracker">
+                <div class="tracker-title">🃏 记牌器</div>
+                <div class="card-count" id="cardTracker">
+                    <!-- 动态生成记牌内容 -->
+                </div>
+            </div>
+            
+            <div class="game-info">
+                <div class="score-board">
+                    <div style="font-size: 18px; font-weight: bold;">分数</div>
+                    <div style="font-size: 24px; color: #ffd700;">1200</div>
+                </div>
+                <div class="score-board">
+                    <div style="font-size: 18px; font-weight: bold;">倍数</div>
+                    <div style="font-size: 24px; color: #ff6b6b;">×2</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主游戏区域 -->
+        <div class="game-board">
+            <!-- 对手区域 -->
+            <div class="opponent-area">
+                <div class="opponent">
+                    <div class="player-info">
+                        <div class="player-name">玩家2</div>
+                        <div class="card-count-display">剩余: <span id="player2-count">17</span>张</div>
+                    </div>
+                    <div class="opponent-cards" id="player2-cards">
+                        <!-- 对手卡牌 -->
+                    </div>
+                </div>
+                
+                <div class="opponent">
+                    <div class="player-info">
+                        <div class="player-name">玩家3</div>
+                        <div class="card-count-display">剩余: <span id="player3-count">17</span>张</div>
+                    </div>
+                    <div class="opponent-cards" id="player3-cards">
+                        <!-- 对手卡牌 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中央出牌区域 -->
+            <div class="center-area">
+                <div class="played-cards" id="playedCards">
+                    <div style="opacity: 0.5; font-size: 18px; color: white;">等待出牌...</div>
+                </div>
+            </div>
+
+            <!-- 玩家手牌区域 -->
+            <div class="player-area">
+                <div class="player-info" style="position: absolute; top: -40px; left: 50%; transform: translateX(-50%);">
+                    <div class="player-name">我的手牌</div>
+                </div>
+                <div class="player-cards" id="playerCards">
+                    <!-- 玩家卡牌 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="action-buttons">
+            <button class="btn btn-hint" onclick="showHint()">💡 提示</button>
+            <button class="btn btn-pass" onclick="passRound()">❌ 不要</button>
+            <button class="btn btn-play" onclick="playCards()">✅ 出牌</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        let gameState = {
+            selectedCards: [],
+            playerCards: [],
+            playedCards: [],
+            cardCounts: {}
+        };
+
+        // 卡牌数据
+        const suits = ['♠', '♥', '♦', '♣'];
+        const values = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'];
+        const specialCards = ['小王', '大王'];
+
+        // 初始化游戏
+        function initGame() {
+            generatePlayerCards();
+            generateOpponentCards();
+            initCardTracker();
+            updateCardTracker();
+        }
+
+        // 生成玩家手牌
+        function generatePlayerCards() {
+            const playerCardsContainer = document.getElementById('playerCards');
+            playerCardsContainer.innerHTML = '';
+            
+            // 生成示例手牌
+            const sampleCards = [
+                {suit: '♠', value: '3', color: 'black'},
+                {suit: '♦', value: '4', color: 'red'},
+                {suit: '♣', value: '5', color: 'black'},
+                {suit: '♥', value: '6', color: 'red'},
+                {suit: '♠', value: '7', color: 'black'},
+                {suit: '♦', value: '8', color: 'red'},
+                {suit: '♣', value: '9', color: 'black'},
+                {suit: '♥', value: '10', color: 'red'},
+                {suit: '♠', value: 'J', color: 'black'},
+                {suit: '♦', value: 'Q', color: 'red'},
+                {suit: '♣', value: 'K', color: 'black'},
+                {suit: '♥', value: 'A', color: 'red'},
+                {suit: '♠', value: '2', color: 'black'},
+                {suit: null, value: '小王', color: 'black'},
+                {suit: null, value: '大王', color: 'red'},
+                {suit: '♥', value: '3', color: 'red'},
+                {suit: '♣', value: '4', color: 'black'}
+            ];
+
+            gameState.playerCards = sampleCards;
+
+            sampleCards.forEach((card, index) => {
+                const cardElement = createCardElement(card, true);
+                cardElement.style.animationDelay = `${index * 0.1}s`;
+                cardElement.classList.add('dealing');
+                cardElement.onclick = () => selectCard(cardElement, card);
+                playerCardsContainer.appendChild(cardElement);
+            });
+        }
+
+        // 生成对手手牌
+        function generateOpponentCards() {
+            // 玩家2
+            const player2Container = document.getElementById('player2-cards');
+            player2Container.innerHTML = '';
+            for (let i = 0; i < 17; i++) {
+                const cardBack = document.createElement('div');
+                cardBack.className = 'card card-back';
+                cardBack.innerHTML = '🂠';
+                cardBack.style.marginLeft = `${i * -15}px`;
+                player2Container.appendChild(cardBack);
+            }
+
+            // 玩家3
+            const player3Container = document.getElementById('player3-cards');
+            player3Container.innerHTML = '';
+            for (let i = 0; i < 17; i++) {
+                const cardBack = document.createElement('div');
+                cardBack.className = 'card card-back';
+                cardBack.innerHTML = '🂠';
+                cardBack.style.marginLeft = `${i * -15}px`;
+                player3Container.appendChild(cardBack);
+            }
+        }
+
+        // 创建卡牌元素
+        function createCardElement(card, isVisible = false) {
+            const cardElement = document.createElement('div');
+            cardElement.className = 'card';
+            
+            if (isVisible) {
+                if (card.value === '小王' || card.value === '大王') {
+                    cardElement.innerHTML = `
+                        <div class="card-value ${card.color}">${card.value}</div>
+                        <div class="card-suit" style="font-size: 30px;">${card.value === '小王' ? '🃏' : '🤹'}</div>
+                        <div class="card-value ${card.color}" style="transform: rotate(180deg);">${card.value}</div>
+                    `;
+                } else {
+                    cardElement.innerHTML = `
+                        <div class="card-value ${card.color}">${card.value}</div>
+                        <div class="card-suit ${card.color}">${card.suit}</div>
+                        <div class="card-value ${card.color}" style="transform: rotate(180deg);">${card.value}</div>
+                    `;
+                }
+            } else {
+                cardElement.className = 'card card-back';
+                cardElement.innerHTML = '🂠';
+            }
+            
+            return cardElement;
+        }
+
+        // 选择卡牌
+        function selectCard(cardElement, card) {
+            const isSelected = cardElement.classList.contains('selected');
+            
+            if (isSelected) {
+                cardElement.classList.remove('selected');
+                gameState.selectedCards = gameState.selectedCards.filter(c => 
+                    !(c.suit === card.suit && c.value === card.value)
+                );
+            } else {
+                cardElement.classList.add('selected');
+                gameState.selectedCards.push(card);
+            }
+            
+            console.log('已选择卡牌:', gameState.selectedCards);
+        }
+
+        // 出牌
+        function playCards() {
+            if (gameState.selectedCards.length === 0) {
+                alert('请先选择要出的牌');
+                return;
+            }
+
+            const playedCardsContainer = document.getElementById('playedCards');
+            playedCardsContainer.innerHTML = '';
+
+            // 添加出牌动画
+            gameState.selectedCards.forEach((card, index) => {
+                const cardElement = createCardElement(card, true);
+                cardElement.classList.add('playing');
+                cardElement.style.animationDelay = `${index * 0.1}s`;
+                playedCardsContainer.appendChild(cardElement);
+            });
+
+            // 从手牌中移除已出的牌
+            const selectedCardElements = document.querySelectorAll('.card.selected');
+            selectedCardElements.forEach(element => {
+                setTimeout(() => {
+                    element.style.animation = 'cardPlay 0.6s ease-in-out';
+                    setTimeout(() => {
+                        element.remove();
+                    }, 600);
+                }, 100);
+            });
+
+            // 更新记牌器
+            gameState.selectedCards.forEach(card => {
+                updateCardCount(card, -1);
+            });
+
+            // 重置选择
+            gameState.selectedCards = [];
+            updateCardTracker();
+
+            console.log('出牌成功');
+        }
+
+        // 不要（跳过）
+        function passRound() {
+            // 取消所有选择
+            const selectedCards = document.querySelectorAll('.card.selected');
+            selectedCards.forEach(card => card.classList.remove('selected'));
+            gameState.selectedCards = [];
+            
+            console.log('选择不要');
+        }
+
+        // 显示提示
+        function showHint() {
+            if (gameState.selectedCards.length === 0) {
+                alert('💡 提示：选择相同点数或连续的牌型进行出牌');
+            } else {
+                alert(`💡 当前选择了 ${gameState.selectedCards.length} 张牌`);
+            }
+        }
+
+        // 初始化记牌器
+        function initCardTracker() {
+            // 初始化所有卡牌的计数
+            values.forEach(value => {
+                gameState.cardCounts[value] = value === '2' ? 4 : 4; // 每种牌4张
+            });
+            gameState.cardCounts['小王'] = 1;
+            gameState.cardCounts['大王'] = 1;
+        }
+
+        // 更新记牌器显示
+        function updateCardTracker() {
+            const trackerContainer = document.getElementById('cardTracker');
+            trackerContainer.innerHTML = '';
+
+            // 显示所有牌的剩余数量
+            const allCards = [...values, '小王', '大王'];
+            allCards.forEach(value => {
+                const countItem = document.createElement('div');
+                countItem.className = 'count-item';
+                countItem.innerHTML = `
+                    <span>${value}</span>
+                    <span style="color: ${gameState.cardCounts[value] === 0 ? '#ff6b6b' : '#00b894'}">${gameState.cardCounts[value]}</span>
+                `;
+                trackerContainer.appendChild(countItem);
+            });
+        }
+
+        // 更新卡牌计数
+        function updateCardCount(card, delta) {
+            const key = card.value;
+            if (gameState.cardCounts[key] !== undefined) {
+                gameState.cardCounts[key] += delta;
+                if (gameState.cardCounts[key] < 0) {
+                    gameState.cardCounts[key] = 0;
+                }
+            }
+        }
+
+        // 屏幕方向检测
+        function checkOrientation() {
+            const rotateHint = document.querySelector('.rotate-hint');
+            const gameContainer = document.querySelector('.game-container');
+            
+            if (window.innerWidth < window.innerHeight && window.innerWidth < 1024) {
+                rotateHint.style.display = 'flex';
+                gameContainer.style.display = 'none';
+            } else {
+                rotateHint.style.display = 'none';
+                gameContainer.style.display = 'flex';
+            }
+        }
+
+        // 监听屏幕方向变化
+        window.addEventListener('orientationchange', checkOrientation);
+        window.addEventListener('resize', checkOrientation);
+
+        // 初始化游戏
+        document.addEventListener('DOMContentLoaded', function() {
+            checkOrientation();
+            initGame();
+        });
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function(event) {
+            switch(event.key) {
+                case 'Enter':
+                    playCards();
+                    break;
+                case 'Escape':
+                    passRound();
+                    break;
+                case 'h':
+                case 'H':
+                    showHint();
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>
